@@ -1,0 +1,4 @@
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/test/java/io/github/knibel/userdataconnector/store/InMemoryUserDataStoreTest.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/test/java/io/github/knibel/userdataconnector/web/UserDataWebhookControllerTest.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/test/java/io/github/knibel/userdataconnector/UserDataConnectorAutoConfigurationTest.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/test/java/io/github/knibel/userdataconnector/web/WebTestApplication.java

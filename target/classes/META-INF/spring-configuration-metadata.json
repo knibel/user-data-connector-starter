@@ -1,0 +1,108 @@
+{
+  "groups": [
+    {
+      "name": "user-data-connector",
+      "type": "io.github.knibel.userdataconnector.UserDataConnectorProperties",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties"
+    },
+    {
+      "name": "user-data-connector.kafka-compact",
+      "type": "io.github.knibel.userdataconnector.UserDataConnectorProperties$KafkaCompactProperties",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties",
+      "sourceMethod": "getKafkaCompact()"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka",
+      "type": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties",
+      "sourceMethod": "getRestWithDeltaKafka()"
+    },
+    {
+      "name": "user-data-connector.webhook",
+      "type": "io.github.knibel.userdataconnector.UserDataConnectorProperties$WebhookProperties",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties",
+      "sourceMethod": "getWebhook()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "user-data-connector.kafka-compact.bootstrap-servers",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of Kafka broker addresses (e.g. {@code localhost:9092}).",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$KafkaCompactProperties"
+    },
+    {
+      "name": "user-data-connector.kafka-compact.group-id",
+      "type": "java.lang.String",
+      "description": "Kafka consumer group identifier.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$KafkaCompactProperties",
+      "defaultValue": "user-data-connector"
+    },
+    {
+      "name": "user-data-connector.kafka-compact.topic",
+      "type": "java.lang.String",
+      "description": "Name of the compacted Kafka topic that carries user identity data.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$KafkaCompactProperties",
+      "defaultValue": "user-identity-data"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka.base-url",
+      "type": "java.lang.String",
+      "description": "Base URL of the REST endpoint that provides the full user identity snapshot (e.g. {@code https:\/\/identity-service.example.com}).",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka.data-path",
+      "type": "java.lang.String",
+      "description": "Path appended to {@link #baseUrl} for the snapshot endpoint.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties",
+      "defaultValue": "\/api\/user-data"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka.delta-kafka-bootstrap-servers",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of Kafka broker addresses for the delta \/ delete topic. Falls back to {@code user-data-connector.kafka-compact.bootstrap-servers} when omitted.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka.delta-kafka-group-id",
+      "type": "java.lang.String",
+      "description": "Kafka consumer group identifier for the delta consumer.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties",
+      "defaultValue": "user-data-connector-delta"
+    },
+    {
+      "name": "user-data-connector.rest-with-delta-kafka.delta-kafka-topic",
+      "type": "java.lang.String",
+      "description": "Name of the Kafka topic that carries incremental (delta\/delete) events.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$RestWithDeltaKafkaProperties",
+      "defaultValue": "user-identity-data-delta"
+    },
+    {
+      "name": "user-data-connector.source-type",
+      "type": "io.github.knibel.userdataconnector.UserDataConnectorProperties$SourceType",
+      "description": "Selects the data source that populates the in-memory user identity store. <ul>   <li>{@code KAFKA_COMPACT} – consume a compacted Kafka topic (key = userId,       value = JSON attributes, null value = tombstone\/delete).<\/li>   <li>{@code REST_WITH_DELTA_KAFKA} – load a full snapshot from a REST endpoint on       startup, then apply incremental updates from a \"delta\" Kafka topic.<\/li>   <li>{@code WEBHOOK} – expose an HTTP endpoint that receives push notifications       from the upstream identity service.<\/li> <\/ul>",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties"
+    },
+    {
+      "name": "user-data-connector.webhook.initial-data-url",
+      "type": "java.lang.String",
+      "description": "Optional URL of the REST snapshot endpoint.  When set, the starter performs an initial load from this URL on startup (same format as {@link RestWithDeltaKafkaProperties#getBaseUrl()} + {@link RestWithDeltaKafkaProperties#getDataPath()}). Subsequent updates arrive via webhook pushes.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$WebhookProperties"
+    },
+    {
+      "name": "user-data-connector.webhook.path",
+      "type": "java.lang.String",
+      "description": "HTTP path on which the starter exposes its webhook endpoint. Defaults to {@code \/webhook\/user-data}.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$WebhookProperties",
+      "defaultValue": "\/webhook\/user-data"
+    },
+    {
+      "name": "user-data-connector.webhook.secret",
+      "type": "java.lang.String",
+      "description": "Optional shared secret.  When set, every incoming webhook request must include an {@code X-Webhook-Secret} header whose value equals this secret; requests without a valid secret are rejected with {@code 401 Unauthorized}.",
+      "sourceType": "io.github.knibel.userdataconnector.UserDataConnectorProperties$WebhookProperties"
+    }
+  ],
+  "hints": []
+}

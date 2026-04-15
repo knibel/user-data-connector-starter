@@ -1,0 +1,11 @@
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/api/UserDataChangeListener.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/source/RestWithDeltaKafkaUserDataSource.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/store/InMemoryUserDataStore.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/UserDataConnectorProperties.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/api/UserIdentityData.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/web/UserDataWebhookController.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/api/UserDataRepository.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/api/UserDataChangeEvent.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/source/KafkaCompactUserDataSource.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/api/ChangeType.java
+/home/runner/work/user-data-connector-starter/user-data-connector-starter/src/main/java/io/github/knibel/userdataconnector/UserDataConnectorAutoConfiguration.java
