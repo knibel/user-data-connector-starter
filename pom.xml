@@ -68,6 +68,18 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Optional: Spring Security OAuth2 Resource Server (used for JWT issuer-based correlation) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-resource-server</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- SLF4J API for logging (implementation provided by consuming application) -->
         <dependency>
             <groupId>org.slf4j</groupId>

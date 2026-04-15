@@ -1,5 +1,6 @@
 package io.github.knibel.userdataconnector.store;
 
+import io.github.knibel.userdataconnector.UserDataConnectorProperties.IssuerCorrelation;
 import io.github.knibel.userdataconnector.api.ChangeType;
 import io.github.knibel.userdataconnector.api.UserDataChangeEvent;
 import io.github.knibel.userdataconnector.api.UserDataChangeListener;
@@ -10,10 +11,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ClassUtils;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,11 +30,22 @@ public class InMemoryUserDataStore implements UserDataRepository {
 
     private static final Logger log = LoggerFactory.getLogger(InMemoryUserDataStore.class);
 
+    private static final boolean JWT_PRESENT = ClassUtils.isPresent(
+            "org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken",
+            InMemoryUserDataStore.class.getClassLoader());
+
     private final ConcurrentHashMap<String, UserIdentityData> store = new ConcurrentHashMap<>();
     private final List<UserDataChangeListener> listeners;
+    private final Map<String, IssuerCorrelation> issuerCorrelations;
 
     public InMemoryUserDataStore(List<UserDataChangeListener> listeners) {
+        this(listeners, Map.of());
+    }
+
+    public InMemoryUserDataStore(List<UserDataChangeListener> listeners,
+                                 Map<String, IssuerCorrelation> issuerCorrelations) {
         this.listeners = List.copyOf(listeners);
+        this.issuerCorrelations = issuerCorrelations != null ? Map.copyOf(issuerCorrelations) : Map.of();
     }
 
     // ---- UserDataRepository (read-only public API) ----
@@ -55,8 +69,17 @@ public class InMemoryUserDataStore implements UserDataRepository {
      * Returns the identity data for the currently authenticated user.
      *
      * <p>Reads the principal name from the Spring Security {@link SecurityContextHolder}.
-     * When used with Spring Boot Security OAuth2 Resource Server the Bearer JWT is
-     * automatically parsed and the {@code sub} claim becomes the principal name.
+     *
+     * <p>When issuer-based correlations are configured and the current authentication
+     * carries a JWT token, the starter inspects the {@code iss} claim.  If a matching
+     * {@link IssuerCorrelation} is found, the configured claim is extracted and used to
+     * look up the user by the configured attribute key via
+     * {@link #findByAttribute(String, String)}.
+     *
+     * <p>When no issuer correlation matches (or when the authentication is not
+     * JWT-based), the method falls back to the default behaviour: use
+     * {@link Authentication#getName()} (typically the {@code sub} claim) and call
+     * {@link #findByUserId(String)}.
      *
      * <p>Returns an empty {@link Optional} when there is no active security context,
      * the request is unauthenticated, or no record exists for the principal.
@@ -69,6 +92,17 @@ public class InMemoryUserDataStore implements UserDataRepository {
                 || authentication instanceof AnonymousAuthenticationToken) {
             return Optional.empty();
         }
+
+        // Try issuer-based correlation when JWT support is on the classpath
+        if (JWT_PRESENT && !issuerCorrelations.isEmpty()) {
+            Optional<UserIdentityData> result =
+                    JwtCorrelationHelper.resolve(authentication, issuerCorrelations, this);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        // Fall back to default: use authentication name (typically sub claim)
         return findByUserId(authentication.getName());
     }
 

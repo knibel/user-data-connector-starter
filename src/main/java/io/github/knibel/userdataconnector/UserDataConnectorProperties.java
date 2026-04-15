@@ -2,6 +2,9 @@ package io.github.knibel.userdataconnector;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Configuration properties for the user-data-connector starter.
  *
@@ -15,6 +18,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *     bootstrap-servers: localhost:9092
  *     topic: user-identity-data
  *     group-id: my-app-user-data
+ *   issuer-correlations:
+ *     "https://issuer-x.example.com":
+ *       claim-name: preferred_username
+ *       user-key: loginName
+ *     "https://issuer-y.example.com":
+ *       claim-name: sub
+ *       user-key: userID
  * }</pre>
  */
 @ConfigurationProperties(prefix = "user-data-connector")
@@ -36,6 +46,22 @@ public class UserDataConnectorProperties {
     private final KafkaCompactProperties kafkaCompact = new KafkaCompactProperties();
     private final RestWithDeltaKafkaProperties restWithDeltaKafka = new RestWithDeltaKafkaProperties();
     private final WebhookProperties webhook = new WebhookProperties();
+
+    /**
+     * Maps JWT issuer URIs to correlation rules that determine how the authenticated
+     * user is resolved from the in-memory store.
+     *
+     * <p>Each key is an issuer URI (the {@code iss} claim in the JWT).  The value
+     * specifies which JWT claim to read and which user-data attribute to match it
+     * against.
+     *
+     * <p>When no entry matches the current JWT's issuer (or when no JWT is present),
+     * the starter falls back to the default behaviour: use
+     * {@link org.springframework.security.core.Authentication#getName()} (typically
+     * the {@code sub} claim) and look the user up by primary key
+     * ({@link io.github.knibel.userdataconnector.api.UserDataRepository#findByUserId}).
+     */
+    private Map<String, IssuerCorrelation> issuerCorrelations = new LinkedHashMap<>();
 
     // ---- Enum ----
 
@@ -65,6 +91,14 @@ public class UserDataConnectorProperties {
 
     public WebhookProperties getWebhook() {
         return webhook;
+    }
+
+    public Map<String, IssuerCorrelation> getIssuerCorrelations() {
+        return issuerCorrelations;
+    }
+
+    public void setIssuerCorrelations(Map<String, IssuerCorrelation> issuerCorrelations) {
+        this.issuerCorrelations = issuerCorrelations;
     }
 
     // ---- Nested configuration classes ----
@@ -170,5 +204,37 @@ public class UserDataConnectorProperties {
 
         public String getInitialDataUrl() { return initialDataUrl; }
         public void setInitialDataUrl(String initialDataUrl) { this.initialDataUrl = initialDataUrl; }
+    }
+
+    /**
+     * Describes how a JWT from a specific issuer is correlated with user identity
+     * data in the in-memory store.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * user-data-connector:
+     *   issuer-correlations:
+     *     "https://issuer-x.example.com":
+     *       claim-name: preferred_username
+     *       user-key: loginName
+     * }</pre>
+     *
+     * <p>This means: for JWTs issued by {@code https://issuer-x.example.com}, read the
+     * {@code preferred_username} claim and find the user whose {@code loginName}
+     * attribute matches that value.
+     */
+    public static class IssuerCorrelation {
+
+        /** JWT claim name to extract the user identifier from (e.g. {@code preferred_username}, {@code sub}). */
+        private String claimName = "sub";
+
+        /** Attribute key in the user identity data to match the extracted claim value against (e.g. {@code loginName}, {@code userID}). */
+        private String userKey;
+
+        public String getClaimName() { return claimName; }
+        public void setClaimName(String claimName) { this.claimName = claimName; }
+
+        public String getUserKey() { return userKey; }
+        public void setUserKey(String userKey) { this.userKey = userKey; }
     }
 }
