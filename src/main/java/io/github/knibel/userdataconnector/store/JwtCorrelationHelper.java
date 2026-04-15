@@ -24,12 +24,22 @@ final class JwtCorrelationHelper {
      * Attempts to resolve a {@link UserIdentityData} from the store by inspecting the
      * JWT token in the given authentication.
      *
+     * <p>This method uses a three-state return convention:
+     * <ul>
+     *   <li>{@code null} – this helper could not handle the authentication (not a JWT,
+     *       no issuer claim, or no matching issuer correlation configured).  The caller
+     *       should fall back to default resolution.</li>
+     *   <li>{@link Optional#empty()} – the correlation was attempted but the configured
+     *       claim was missing from the token, or no user record matched.</li>
+     *   <li>A present {@link Optional} – the user was successfully resolved.</li>
+     * </ul>
+     *
      * @param authentication     the current Spring Security authentication
      * @param issuerCorrelations the configured issuer-to-correlation mappings
      * @param store              the in-memory store to search
-     * @return the resolved user data, or {@code null} if this helper cannot handle the
-     *         authentication (e.g. it is not a JWT authentication, or no matching issuer
-     *         correlation is configured)
+     * @return the resolved user data, an empty {@link Optional} if correlation was
+     *         attempted but no match was found, or {@code null} to signal that the
+     *         caller should fall back to default resolution
      */
     static Optional<UserIdentityData> resolve(
             Authentication authentication,
