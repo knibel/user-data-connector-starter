@@ -7,6 +7,9 @@ import io.github.knibel.userdataconnector.api.UserDataRepository;
 import io.github.knibel.userdataconnector.api.UserIdentityData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +49,27 @@ public class InMemoryUserDataStore implements UserDataRepository {
     @Override
     public boolean exists(String userId) {
         return store.containsKey(userId);
+    }
+
+    /**
+     * Returns the identity data for the currently authenticated user.
+     *
+     * <p>Reads the principal name from the Spring Security {@link SecurityContextHolder}.
+     * When used with Spring Boot Security OAuth2 Resource Server the Bearer JWT is
+     * automatically parsed and the {@code sub} claim becomes the principal name.
+     *
+     * <p>Returns an empty {@link Optional} when there is no active security context,
+     * the request is unauthenticated, or no record exists for the principal.
+     */
+    @Override
+    public Optional<UserIdentityData> getCurrent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
+        return findByUserId(authentication.getName());
     }
 
     // ---- Internal write API (package-visible for source adapters) ----
