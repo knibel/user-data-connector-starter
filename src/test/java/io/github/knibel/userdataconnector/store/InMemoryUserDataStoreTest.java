@@ -4,8 +4,13 @@ import io.github.knibel.userdataconnector.api.ChangeType;
 import io.github.knibel.userdataconnector.api.UserDataChangeEvent;
 import io.github.knibel.userdataconnector.api.UserDataChangeListener;
 import io.github.knibel.userdataconnector.api.UserIdentityData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +29,11 @@ class InMemoryUserDataStoreTest {
         capturedEvents.clear();
         UserDataChangeListener listener = capturedEvents::add;
         store = new InMemoryUserDataStore(List.of(listener));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -85,6 +95,39 @@ class InMemoryUserDataStoreTest {
     @Test
     void findByUserId_returnsEmptyWhenNotFound() {
         assertThat(store.findByUserId("missing")).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    void getCurrent_returnsEmptyWhenNoSecurityContext() {
+        assertThat(store.getCurrent()).isEmpty();
+    }
+
+    @Test
+    void getCurrent_returnsEmptyWhenAnonymousAuthentication() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new AnonymousAuthenticationToken("key", "anonymousUser",
+                        List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+
+        assertThat(store.getCurrent()).isEmpty();
+    }
+
+    @Test
+    void getCurrent_returnsUserDataForAuthenticatedPrincipal() {
+        UserIdentityData data = new UserIdentityData("alice", Map.of("email", "alice@example.com"));
+        store.upsert(data);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("alice", null, "ROLE_USER"));
+
+        assertThat(store.getCurrent()).hasValue(data);
+    }
+
+    @Test
+    void getCurrent_returnsEmptyWhenAuthenticatedButNoRecordFound() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("unknown-user", null, "ROLE_USER"));
+
+        assertThat(store.getCurrent()).isEmpty();
     }
 
     @Test

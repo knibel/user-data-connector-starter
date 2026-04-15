@@ -61,6 +61,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Optional: Spring Security core (used by getCurrent() to read SecurityContextHolder) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- SLF4J API for logging (implementation provided by consuming application) -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -83,6 +90,12 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Bring in Spring Security for tests -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
