@@ -36,6 +36,23 @@ public interface UserDataRepository {
     boolean exists(String userId);
 
     /**
+     * Finds a user by matching an attribute value.
+     *
+     * <p>Scans all known user records and returns the first one whose
+     * {@link UserIdentityData#getAttribute(String) attribute} for the given
+     * {@code key} equals the supplied {@code value}.
+     *
+     * @param key   the attribute key to search by (never {@code null})
+     * @param value the expected attribute value (never {@code null})
+     * @return the matching user's identity data, or empty
+     */
+    default Optional<UserIdentityData> findByAttribute(String key, String value) {
+        return findAll().stream()
+                .filter(d -> value.equals(d.getAttribute(key)))
+                .findFirst();
+    }
+
+    /**
      * Returns the identity data for the currently authenticated user by reading the
      * principal name from the Spring Security {@code SecurityContextHolder}.
      *

@@ -65,9 +65,11 @@ public class UserDataConnectorAutoConfiguration {
      */
     @Bean
     public InMemoryUserDataStore inMemoryUserDataStore(
-            ObjectProvider<UserDataChangeListener> listenerProvider) {
+            ObjectProvider<UserDataChangeListener> listenerProvider,
+            UserDataConnectorProperties properties) {
         return new InMemoryUserDataStore(
-                listenerProvider.stream().collect(Collectors.toList()));
+                listenerProvider.stream().collect(Collectors.toList()),
+                properties.getIssuerCorrelations());
     }
 
     /**
